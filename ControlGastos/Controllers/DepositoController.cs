@@ -21,5 +21,16 @@ namespace ControlGastos.Controllers
             var depositoId = await _depositoRepository.RegistrarDepositoAsync(dto);
             return Ok(new { DepositoId = depositoId });
         }
+
+        [HttpGet]
+        public async Task<IActionResult> ObtenerDepositos(DateTime fechaInicio, DateTime fechaFin)
+        {
+            if (fechaInicio > fechaFin)
+            {
+                return BadRequest("La fecha de inicio no puede ser mayor que la fecha de fin.");
+            }
+            var depositos = await _depositoRepository.ObtenerDepositosAsync(fechaInicio, fechaFin);
+            return Ok(depositos);
+        }
     }
 }

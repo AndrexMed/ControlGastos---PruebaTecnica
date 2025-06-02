@@ -9,31 +9,29 @@ namespace ControlGastos.repository.implementation
     public class GastoRepository(ControlGastosContext context) : IGastoRepository
     {
         private readonly ControlGastosContext _context = context;
-        public async Task<IEnumerable<GastoMovimientoDTO>> ObtenerMovimientosAsync(DateTime desde, DateTime hasta)
+        public async Task<IEnumerable<GastoMovimientoDTO>> ObtenerGastosAsync(DateTime desde, DateTime hasta)
         {
+            var hastaFin = hasta.Date.AddDays(1).AddTicks(-1);
+
             var gastos = await _context.GastoEncabezados
-               .Where(g => g.Fecha >= desde && g.Fecha <= hasta)
-               .Select(g => new GastoMovimientoDTO
-               {
-                   Fecha = g.Fecha,
-                   Monto = g.GastoDetalles.Sum(d => d.Monto),
-                   Tipo = "Gasto",
-                   Descripcion = g.NombreComercio
-               })
-               .ToListAsync();
-
-            var depositos = await _context.Depositos
-                .Where(d => d.Fecha >= desde && d.Fecha <= hasta)
-                .Select(d => new GastoMovimientoDTO
+                .Where(g => g.Fecha >= desde && g.Fecha <= hastaFin)
+                .Select(g => new GastoMovimientoDTO
                 {
-                    Fecha = d.Fecha,
-                    Monto = d.Monto,
-                    Tipo = "Depósito",
-                    Descripcion = "Ingreso a fondo"
-                })
-                .ToListAsync();
+                    Fecha = g.Fecha,
+                    FondoMonetario = g.FondoMonetario.Nombre,
+                    MontoTotal = g.GastoDetalles.Sum(d => d.Monto),
+                    Observaciones = g.Observaciones ?? string.Empty,
+                    NombreComercio = g.NombreComercio ?? string.Empty,
+                    TipoDocumento = g.TipoDocumento ?? string.Empty,
+                    GastoDetalleDTOs = g.GastoDetalles
+                    .Select(d => new GastoDetalleDTO
+                    {
+                        TipoGastoId = d.TipoGastoId,
+                        Monto = d.Monto
+                    }).ToList()
+                }).ToListAsync();
 
-            return gastos.Concat(depositos).OrderBy(m => m.Fecha);
+            return gastos;
         }
 
         public async Task<GastoResultadoDTO> RegistrarGastoAsync(GastoRegistroDTO dto)
@@ -49,25 +47,12 @@ namespace ControlGastos.repository.implementation
                 TipoDocumento = dto.TipoDocumento
             };
 
-            _context.GastoEncabezados.Add(encabezado);
-            await _context.SaveChangesAsync();
-
-            var detalles = dto.Detalles.Select(d => new GastoDetalle
-            {
-                GastoEncabezadoId = encabezado.GastoEncabezadoId,
-                TipoGastoId = d.TipoGastoId,
-                Monto = d.Monto
-            }).ToList();
-
-            _context.GastoDetalles.AddRange(detalles);
-            await _context.SaveChangesAsync();
-
-            // Validación de presupuesto
+            // Validación de presupuesto ANTES de guardar detalles
             var anio = dto.Fecha.Year;
             var mes = dto.Fecha.Month;
             var alertas = new List<SobregiroDTO>();
 
-            foreach (var grupo in detalles.GroupBy(d => d.TipoGastoId))
+            foreach (var grupo in dto.Detalles.GroupBy(d => d.TipoGastoId))
             {
                 var gastoActual = await _context.GastoDetalles
                     .Include(g => g.GastoEncabezado)
@@ -93,6 +78,20 @@ namespace ControlGastos.repository.implementation
                 }
             }
 
+            // Guardar encabezado y detalles después de validación
+            _context.GastoEncabezados.Add(encabezado);
+            await _context.SaveChangesAsync();
+
+            var detalles = dto.Detalles.Select(d => new GastoDetalle
+            {
+                GastoEncabezadoId = encabezado.GastoEncabezadoId,
+                TipoGastoId = d.TipoGastoId,
+                Monto = d.Monto
+            }).ToList();
+
+            _context.GastoDetalles.AddRange(detalles);
+            await _context.SaveChangesAsync();
+
             await transaction.CommitAsync();
 
             return new GastoResultadoDTO
@@ -102,5 +101,6 @@ namespace ControlGastos.repository.implementation
                 Alertas = alertas
             };
         }
+
     }
 }

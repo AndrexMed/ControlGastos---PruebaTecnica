@@ -45,6 +45,7 @@ namespace ControlGastos.repository.implementation
            .Select(p => new PresupuestoDTO
            {
                TipoGastoId = p.TipoGastoId,
+               NombreTipoGasto = p.TipoGasto.Nombre,
                Mes = p.Mes,
                Anio = p.Anio,
                Monto = p.Monto
@@ -58,6 +59,7 @@ namespace ControlGastos.repository.implementation
            .Select(p => new PresupuestoDTO
            {
                TipoGastoId = p.TipoGastoId,
+               NombreTipoGasto = p.TipoGasto.Nombre,
                Mes = p.Mes,
                Anio = p.Anio,
                Monto = p.Monto

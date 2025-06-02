@@ -21,9 +21,9 @@ namespace ControlGastos.Controllers
         }
 
         [HttpGet("movimientos")]
-        public async Task<IActionResult> Movimientos([FromQuery] DateTime desde, [FromQuery] DateTime hasta)
+        public async Task<IActionResult> Movimientos([FromQuery] DateTime fechaInicio, [FromQuery] DateTime fechaFin)
         {
-            var datos = await _repository.ObtenerMovimientosAsync(desde, hasta);
+            var datos = await _repository.ObtenerGastosAsync(fechaInicio, fechaFin);
             return Ok(datos);
         }
     }

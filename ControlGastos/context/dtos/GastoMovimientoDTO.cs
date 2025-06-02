@@ -3,8 +3,11 @@
     public class GastoMovimientoDTO
     {
         public DateTime Fecha { get; set; }
-        public decimal Monto { get; set; }
-        public string Tipo { get; set; } = string.Empty;
-        public string Descripcion { get; set; } = string.Empty;
+        public string FondoMonetario { get; set; } = string.Empty;
+        public string Observaciones { get; set; } = string.Empty;
+        public decimal MontoTotal { get; set; }
+        public string NombreComercio { get; set; } = string.Empty;
+        public string TipoDocumento { get; set; } = string.Empty;
+        public required List<GastoDetalleDTO> GastoDetalleDTOs { get; set; } 
     }
 }
