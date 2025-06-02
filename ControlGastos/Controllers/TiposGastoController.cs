@@ -4,11 +4,13 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ControlGastos.Controllers
 {
-    public class TipoGastoController(ITipoGastoRepository repository) : ControllerBase
+    [Route("api/[controller]")]
+    [ApiController]
+    public class TiposGastoController(ITipoGastoRepository repository) : ControllerBase
     {
         private readonly ITipoGastoRepository _repository = repository;
 
-        [HttpGet("Getall")]
+        [HttpGet]
         public async Task<ActionResult<IEnumerable<TipoGasto>>> Get()
         {
             var items = await _repository.GetAllAsync();
