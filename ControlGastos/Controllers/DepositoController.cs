@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ControlGastos.Controllers
 {
+    [Route("api/[controller]")]
+    [ApiController]
     public class DepositoController(IDepositoRepository depositoRepository) : ControllerBase
     {
         private readonly IDepositoRepository _depositoRepository = depositoRepository;

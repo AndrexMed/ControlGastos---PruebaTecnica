@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ControlGastos.Controllers
 {
+    [Route("api/[controller]")]
+    [ApiController]
     public class GastoController(IGastoRepository repository) : ControllerBase
     {
         private readonly IGastoRepository _repository = repository;
